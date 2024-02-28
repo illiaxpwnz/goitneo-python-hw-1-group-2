@@ -1,48 +1,47 @@
-from datetime import datetime
-from birthdays import get_birthdays_this_week
+def add_contact(contacts, name, phone):
+    contacts[name] = phone
+    return "Contact added."
 
-def is_leap_year(year):
-    """Перевіряє, чи є рік високосним."""
-    return year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
-
-def bot_response(command):
-    if command == "1": # генерація відповіді по команді
-        today = datetime.now()
-        return f"Сьогодні {today.strftime('%A, %d %B %Y')}."
-    elif command == "2":
-        if is_leap_year(datetime.now().year):
-            return "Цей рік високосний."
-        else:
-            return "Цей рік не високосний."
-    elif command == "3":
-        colleagues = [ # дні народження колег
-            ("Василь Щур", "1995-03-03"),
-            ("Антон Шпак", "1996-04-21"), 
-            ("Тарас Шевченко", "1814-03-09"),
-        ]
-        birthdays = get_birthdays_this_week(colleagues)
-        if birthdays:
-            return "Цього тижня день народження святкує: " + ", ".join(birthdays)
-        else:
-            return "На цьому тижні днів народження немає."
+def change_contact(contacts, name, phone):
+    if name in contacts:
+        contacts[name] = phone
+        return "Contact updated."
     else:
-        return "Вибачте, я не розумію команду."
+        return "Contact not found."
 
-def greet_user():
-    """Виводить привітання користувачу."""
-    print("Привіт! Я бот-асистент. Чим можу допомогти?")
+def show_phone(contacts, name):
+    if name in contacts:
+        return contacts[name]
+    else:
+        return "Contact not found."
 
+def show_all(contacts):
+    return '\n'.join([f"{name}: {phone}" for name, phone in contacts.items()])
 
-greet_user()
-while True: # Основний цикл асистента
-    print("\nЯ можу виконати наступні команди:")
-    print("1) Який сьогодні день та дата?")
-    print("2) Рік високосний чи ні?")
-    print("3) Чи святкують мої колеги день народження цього тижня?")
-    print("q) Вийти")
+def main():
+    contacts = {}
+    print("Welcome to the assistant bot!")
     
-    command = input("Введіть команду: ")
-    if command == "q":
-        break
-    response = bot_response(command)
-    print(response)
+    while True:
+        user_input = input("Enter a command: ").strip()
+        if user_input.lower() in ["close", "exit"]:
+            print("Good bye!")
+            break
+        elif user_input.lower() == "hello":
+            print("How can I help you?")
+        elif user_input.lower().startswith("add "):
+            _, name, phone = user_input.split(maxsplit=2)
+            print(add_contact(contacts, name, phone))
+        elif user_input.lower().startswith("change "):
+            _, name, phone = user_input.split(maxsplit=2)
+            print(change_contact(contacts, name, phone))
+        elif user_input.lower().startswith("phone "):
+            _, name = user_input.split(maxsplit=1)
+            print(show_phone(contacts, name))
+        elif user_input.lower() == "all":
+            print(show_all(contacts))
+        else:
+            print("Invalid command.")
+
+if __name__ == "__main__":
+    main()
