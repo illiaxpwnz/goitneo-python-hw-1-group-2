@@ -1,21 +1,40 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+from collections import defaultdict
 
-def get_birthdays_this_week(colleagues):
-    today = datetime.now()     # Отримання поточного тижня року
-    current_week = today.isocalendar()[1]
+def get_birthdays_per_week(users):
+    today = datetime.today().date()
+    week_days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    birthdays = defaultdict(list)
 
-    birthdays_this_week = [     # Фільтрація колег, дні народження яких випадають на поточний тиждень
-        name for name, birthday_str in colleagues
-        if datetime.strptime(birthday_str, "%Y-%m-%d").replace(year=today.year).isocalendar()[1] == current_week
-    ]
+    for user in users:
+        name = user["name"]
+        birthday = datetime.strptime(user["birthday"], "%Y-%m-%d").date()
+        birthday_this_year = birthday.replace(year=today.year)
+
+        if birthday_this_year < today:   # якщо дн пройшов, розглядаємо наступний рік
+            birthday_this_year = birthday_this_year.replace(year=today.year + 1)
+        
+        delta_days = (birthday_this_year - today).days
+
+        if 0 <= delta_days <= 7:
+            day_of_week = week_days[birthday_this_year.weekday()]
+            if day_of_week in ["Saturday", "Sunday"]:           # якщо сб-нд, привітання на понеділок
+                day_of_week = "Monday"
+            birthdays[day_of_week].append(name)
     
-    return birthdays_this_week
+    result = ""     # форматування результату для виводу
+    for day in week_days:
+        if day in birthdays:
+            names = ", ".join(birthdays[day])
+            result += f"{day}: {names}\n"
 
-colleagues = [ # Приклад списку колег
-    ("Василь Щур", "1995-03-03"),
-    ("Антон Шпак", "1996-04-21"), 
-    ("Тарас Шевченко", "1814-03-09"),
+    return result.strip()
+
+users = [
+    {"name": "Bill Gates", "birthday": "1955-10-28"},
+    {"name": "Anton Shpak", "birthday": "1996-03-03"},
+    {"name": "Taras Shevchenko", "birthday": "1814-03-09"},
+    {"name": "Jan Koum", "birthday": "1976-02-24"}
 ]
 
-birthdays_this_week = get_birthdays_this_week(colleagues)
-print(birthdays_this_week)
+print(get_birthdays_per_week(users))
